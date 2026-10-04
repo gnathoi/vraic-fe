@@ -1,4 +1,6 @@
-# Private network for the Jersey Futures Engine. Only jfe-api publishes a port (loopback).
+# Private network for the Jersey Futures Engine. Internal: no route to the LAN, the tailnet or the internet.
+# Only jfe-api publishes a port (loopback), which rootless Podman still forwards on internal networks.
 [Network]
 NetworkName=jfe-net
+Internal=true
 Label=app=jfe

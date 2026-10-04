@@ -7,6 +7,11 @@ SHA=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)
 if [ "${1:-}" != "--no-build" ]; then
   podman build --build-arg GIT_SHA="$SHA" -t localhost/jfe-app:"$SHA" -t localhost/jfe-app:latest -f Containerfile .
 fi
+# quadlets only create missing networks: recreate jfe-net once if it predates Internal=true
+if podman network exists jfe-net && [ "$(podman network inspect jfe-net --format '{{.Internal}}')" != true ]; then
+  systemctl --user stop jfe-api.service jfe-worker.service jfe-reports.service jfe-llm.service jfe-db.service jfe-network.service
+  podman network rm jfe-net
+fi
 mkdir -p ~/.config/containers/systemd
 for f in deploy/quadlets/*; do sed "s|%h/vraic-fe/.env|$PWD/.env|" "$f" > ~/.config/containers/systemd/"$(basename "$f")"; done
 systemctl --user daemon-reload

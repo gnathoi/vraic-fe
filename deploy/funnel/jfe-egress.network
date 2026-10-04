@@ -1,0 +1,4 @@
+# Normal (routed) network for the Funnel sidecar only.
+[Network]
+NetworkName=jfe-egress
+Label=app=jfe

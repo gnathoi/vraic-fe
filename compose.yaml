@@ -1,5 +1,7 @@
 # Same stack as deploy/quadlets, for `docker compose up -d` or `podman compose up -d`.
 # Needs .env (from .env.example) and the model in the jfe-models volume (deploy/fetch-model.sh).
+# jfe-net and jfe-edge are internal (no egress). Podman still publishes jfe-api's loopback port from internal networks;
+# Docker Engine may not, in which case drop `internal: true` from jfe-net and jfe-edge (losing the egress block).
 name: jfe
 
 x-gpu: &gpu
@@ -68,7 +70,11 @@ services:
   jfe-api:
     <<: [*app, *gpu]
     container_name: jfe-api
-    command: uvicorn jfe.api:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=* --workers 1
+    command: uvicorn jfe.api:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=10.89.77.6 --workers 1
+    networks:
+      jfe-net: {}
+      jfe-edge:
+        ipv4_address: 10.89.77.2
     environment:
       JFE_LLM_URL: http://jfe-llm:8000/v1
     ports: ["127.0.0.1:8090:8000"]
@@ -98,6 +104,14 @@ services:
 networks:
   jfe-net:
     name: jfe-net
+    internal: true
+  # link to the optional Funnel sidecar (deploy/funnel, 10.89.77.6)
+  jfe-edge:
+    name: jfe-edge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.89.77.0/29
 
 volumes:
   jfe-pg:

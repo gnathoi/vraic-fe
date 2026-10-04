@@ -40,4 +40,5 @@ few minutes to load on first start.
 
 Code: Apache-2.0. Data © Statistics Jersey and Government of Jersey, Open Government Licence – Jersey v1.0.
 
-To share it privately, `tailscale serve` in front of port 8090 works well.
+To share it privately, `tailscale serve` in front of port 8090 works well. For public access, the optional Tailscale Funnel
+sidecar in `deploy/funnel` exposes only the app (admin routes are refused); all app containers sit on internal networks.

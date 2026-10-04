@@ -1,6 +1,7 @@
 """HTTP API. One validated contract for chat, form and scripts; the simulation never runs inside a request."""
 import asyncio
 import hmac
+import ipaddress
 import re
 import json
 import os
@@ -125,8 +126,15 @@ def session(request: Request):
     return row
 
 
+def via_funnel(request: Request):
+    # Tailscale Funnel sets this on every public-internet request and strips any copy the client sends
+    return "tailscale-funnel-request" in request.headers
+
+
 def admin(request: Request, creds: HTTPBasicCredentials | None = Depends(basic)):
-    """Admin = a session started with the admin code, or HTTP Basic with the admin code as password (for scripts)."""
+    """Admin = a session started with the admin code, or HTTP Basic with the admin code as password (for scripts). Never via Funnel."""
+    if via_funnel(request):
+        raise HTTPException(404, "Not Found")
     sid = request.cookies.get("jfe_session")
     if sid and db.one("select 1 from sessions where id=%s and expires > now() and is_operator", sid):
         return "admin"
@@ -135,7 +143,9 @@ def admin(request: Request, creds: HTTPBasicCredentials | None = Depends(basic))
     raise HTTPException(401, "Admin code required.", headers={"WWW-Authenticate": 'Basic realm="vraic-fe admin"'})
 
 
-def operator(s=Depends(session)):
+def operator(request: Request, s=Depends(session)):
+    if via_funnel(request):
+        raise HTTPException(404, "Not Found")
     if not s["is_operator"]:
         raise HTTPException(403, "Operator access only.")
     return s
@@ -205,11 +215,19 @@ def healthz():
 
 @app.post("/api/session")
 def create_session(body: SessionIn, request: Request, response: Response):
-    # coarse abuse guard only: a whole venue shares one public IP (and a reverse proxy appears as loopback)
-    limit(f"ip:{request.client.host}:session", 600)
-    is_op = bool(OPERATOR_CODE) and hmac.compare_digest(body.code.strip(), OPERATOR_CODE)
+    # code guessing: 20 wrong codes a minute per IP (IPv6 per /64); a venue shares one IP, so valid codes are not counted
+    ip = request.client.host if request.client else "?"
+    if ":" in ip:
+        try:
+            ip = str(ipaddress.ip_network(f"{ip}/64", strict=False))
+        except ValueError:
+            pass
+    key = f"ip:{ip}:session"
+    limit(key, 20)
+    is_op = bool(OPERATOR_CODE) and not via_funnel(request) and hmac.compare_digest(body.code.strip(), OPERATOR_CODE)
     if not is_op and not (EVENT_CODE and hmac.compare_digest(body.code.strip().upper(), EVENT_CODE.upper())):
         raise HTTPException(403, "That access code is not valid.")
+    hits[key].pop()
     if db.mode() == "CLOSED" and not is_op:
         raise HTTPException(503, "The event demo is closed.")
     sid = db.new_id("s")
@@ -786,7 +804,7 @@ def op_mode(body: ModeIn, _=Depends(operator)):
     return {"mode": body.mode}
 
 
-# ---------------------------------------------------------------- admin dashboard (HTTP Basic)
+# ---------------------------------------------------------------- admin dashboard (HTTP Basic; never via Funnel)
 @app.get("/admin")
 def admin_page(_=Depends(admin)):
     return FileResponse(TEMPLATES / "admin.html", headers={"Cache-Control": "no-store"})

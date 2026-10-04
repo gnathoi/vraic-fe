@@ -1,0 +1,27 @@
+# Optional public entry: a separate tailnet node that funnels HTTPS to jfe-api only (serve.json here).
+# Install: copy this file and jfe-egress.network to ~/.config/containers/systemd/, put TS_AUTHKEY=... in
+# ~/.config/jfe-funnel.env, set the config path below, then `systemctl --user daemon-reload`.
+# No [Install]: never started at boot. Start deliberately with `systemctl --user start jfe-funnel`.
+[Unit]
+Description=JFE public entry (Tailscale Funnel sidecar)
+Wants=jfe-api.service
+After=jfe-api.service
+
+[Container]
+ContainerName=jfe-funnel
+Image=docker.io/tailscale/tailscale:v1.102.5
+Label=app=jfe
+Network=jfe-egress.network
+Network=jfe-edge.network:ip=10.89.77.6
+DropCapability=all
+NoNewPrivileges=true
+ReadOnly=true
+Tmpfs=/tmp
+Volume=jfe-ts-state:/var/lib/tailscale:Z
+Volume=%h/vraic-fe/deploy/funnel:/config:ro,z
+EnvironmentFile=%h/.config/jfe-funnel.env
+Environment=TS_HOSTNAME=vraic-fe TS_USERSPACE=true TS_STATE_DIR=/var/lib/tailscale TS_AUTH_ONCE=true TS_SERVE_CONFIG=/config/serve.json
+
+[Service]
+Restart=always
+TimeoutStartSec=120

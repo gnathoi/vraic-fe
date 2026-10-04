@@ -1,0 +1,6 @@
+# Internal link between jfe-api and the optional Funnel sidecar (fixed subnet so the sidecar has a static IP).
+[Network]
+NetworkName=jfe-edge
+Internal=true
+Subnet=10.89.77.0/29
+Label=app=jfe

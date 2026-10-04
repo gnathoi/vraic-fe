@@ -1,0 +1,15 @@
+{
+  "TCP": {"443": {"HTTPS": true}},
+  "Web": {
+    "${TS_CERT_DOMAIN}:443": {
+      "Handlers": {
+        "/": {"Proxy": "http://jfe-api:8000"},
+        "/admin": {"Text": "not found"},
+        "/admin.js": {"Text": "not found"},
+        "/api/admin": {"Text": "not found"},
+        "/api/operator": {"Text": "not found"}
+      }
+    }
+  },
+  "AllowFunnel": {"${TS_CERT_DOMAIN}:443": true}
+}
