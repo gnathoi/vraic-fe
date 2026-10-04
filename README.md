@@ -9,6 +9,8 @@ validated scenario changes; the engine, not the LLM, computes every number.
 ## Requirements
 
 - NVIDIA GPU (tested on 48 GB; the LLM takes 80% of it) with the NVIDIA Container Toolkit and CDI (`nvidia.com/gpu=0`).
+  Two smaller cards also work, e.g. 32 + 20 GB: in `jfe-llm` add `nvidia.com/gpu=1`, `--pipeline-parallel-size 2`,
+  `VLLM_PP_LAYER_PARTITION=30,18` and, if one card is Ampere, `--moe-backend marlin`.
 - About 31 GB of disk for the model weights, plus the container images.
 
 ## Run
@@ -34,6 +36,8 @@ Open http://localhost:8090 and enter the access code. The build downloads and ch
 few minutes to load on first start.
 
 ## Docs
+
+- [Slides (PDF)](presentation/Vraic-Futures-Engine.pdf) and [demo film](presentation/media/vraic-fe-45s.mp4)
 
 - [docs/CAPABILITIES.md](docs/CAPABILITIES.md)
 - [docs/DATASETS.md](docs/DATASETS.md)
