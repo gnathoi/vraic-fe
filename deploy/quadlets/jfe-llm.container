@@ -1,0 +1,26 @@
+# Local inference: Qwen3-30B-A3B-Instruct-2507-FP8 (MoE, 3.3B active, non-thinking) on vLLM with JSON-schema
+# constrained decoding. Capped at 80% of the 48 GB card so the CuPy simulation worker keeps headroom.
+# Not published on the host; reachable only as jfe-llm:8000 on jfe-net.
+[Unit]
+Description=JFE local LLM (vLLM)
+
+[Container]
+ContainerName=jfe-llm
+Image=docker.io/vllm/vllm-openai:v0.30.0
+Label=app=jfe
+Network=jfe.network
+AddDevice=nvidia.com/gpu=0
+ShmSize=8g
+Volume=jfe-models.volume:/models:ro,Z
+Environment=HF_HUB_OFFLINE=1 VLLM_NO_USAGE_STATS=1 DO_NOT_TRACK=1
+Exec=--model /models/qwen3-30b-a3b-instruct-2507-fp8 --served-model-name qwen3-30b-a3b-instruct --port 8000 --max-model-len 16384 --gpu-memory-utilization 0.80 --max-num-seqs 16 --enable-prefix-caching --generation-config vllm
+HealthCmd=python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+HealthInterval=30s
+HealthStartPeriod=600s
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

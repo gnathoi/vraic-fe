@@ -1,0 +1,4 @@
+# Private network for the Jersey Futures Engine. Only jfe-api publishes a port (loopback).
+[Network]
+NetworkName=jfe-net
+Label=app=jfe

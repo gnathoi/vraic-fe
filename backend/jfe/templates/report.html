@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/png;base64,{{ logo }}">
+<title>{{ sc.title }} - Vraic Futures Engine briefing</title>
+<style>
+  :root { --ink:#151515; --muted:#4d5258; --line:#d2d2d2; --accent:#0066cc; --bg:#ffffff; --soft:#f5f5f5; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.55 "Red Hat Text", "Helvetica Neue", Arial, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 24px 64px; }
+  header { border-bottom: 3px solid var(--ink); padding-bottom: 16px; margin-bottom: 24px; }
+  .kicker { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 30px; line-height: 1.15; margin: 6px 0 10px; }
+  h2 { font-size: 18px; margin: 32px 0 8px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .badge { display:inline-block; border:1.5px solid var(--accent); color:var(--accent); font-weight:700; font-size:12px; padding:2px 8px; border-radius:3px; letter-spacing:.04em; text-transform:uppercase; }
+  .meta { color: var(--muted); font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; background: var(--soft); }
+  td.num, th.num { text-align: right; }
+  .findings li { margin: 6px 0; }
+  figure { margin: 16px 0; }
+  figure svg { width: 100%; height: auto; }
+  figcaption { font-size: 12.5px; color: var(--muted); }
+  .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .caveats li { margin: 4px 0; }
+  footer { margin-top: 40px; border-top: 3px solid var(--ink); padding-top: 12px; font-size: 12.5px; color: var(--muted); }
+  code { font-size: 12px; background: var(--soft); padding: 1px 4px; border-radius: 2px; word-break: break-all; }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+  @media print { main { padding: 0; } h2 { break-after: avoid; } figure, table { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="kicker"><img src="data:image/png;base64,{{ logo }}" alt="" width="28" height="28" style="vertical-align:middle;margin-right:8px">Vraic Futures Engine &middot; scenario briefing</div>
+  <h1>{{ sc.title }}</h1>
+  <span class="badge">Experimental scenario, not a forecast &middot; {{ result.model_version }}</span>
+  <p class="meta">Run <code>{{ run.id }}</code> &middot; generated {{ generated }} &middot; data pack <code>{{ result.pack_id }}</code> &middot; {{ cache_status }}</p>
+
+</header>
+
+<h2>Findings</h2>
+<ul class="findings">{% for f in findings %}<li>{{ f }}</li>{% endfor %}</ul>
+<p class="meta">Baseline: official mid-range assumptions from end-2025.</p>
+
+<h2>Assumptions</h2>
+<table>
+  <tr><th>Assumption</th><th>Value</th><th>Provenance</th></tr>
+  {% for a in assumptions %}<tr><td>{{ a.field|capitalize }}</td><td>{{ a.value }}</td><td>{{ a.provenance }}</td></tr>{% endfor %}
+</table>
+{% if result.warnings %}<p><strong>Warnings:</strong> {{ result.warnings|join(' ') }}</p>{% endif %}
+
+<h2>Visual evidence</h2>
+<figure>{{ plots['trajectories.svg']|safe }}
+  <figcaption>People. Observed (Sept 2026), official projection (Feb 2026), baseline, scenario.</figcaption></figure>
+<div class="grid2">
+  <figure>{{ plots['population-pyramid.svg']|safe }}
+    <figcaption>End-{{ result.years[-1] }}. Bars: scenario; outline: baseline.</figcaption></figure>
+  <figure>{{ plots['scenario-differences.svg']|safe }}
+    <figcaption>Scenario minus baseline, people.</figcaption></figure>
+</div>
+<figure>{{ plots['ltc-claim-pressure.svg']|safe }}
+  <figcaption>Open LTC claims at 2024 rates by age band and sex, 65+. Not care need.</figcaption></figure>
+
+<h2>Data table</h2>
+<table>
+  <tr><th>Metric</th>{% for y in result.years if y % 5 == 0 or y == result.years[-1] %}<th class="num">{{ y }}</th>{% endfor %}</tr>
+  {% set agg = 'value' if 'value' in result.metrics.scenario.population_total else 'p50' %}
+  {% for mid in ['population_total','population_0_15','population_16_64','population_65_plus','population_80_plus','old_age_ratio','dependency_ratio','ltc_claims_index_65plus','pupils_primary_proxy','pupils_secondary_proxy','hospital_bed_days','gp_appointments','nurses_fte_proxy','doctors_fte_proxy','homes_needed_additional'] %}
+  <tr><td>{{ metrics[mid] }}</td>{% for y in result.years if y % 5 == 0 or y == result.years[-1] %}{% set v = result.metrics.scenario[mid][agg][result.years.index(y)] %}<td class="num">{{ '–' if v is none else ('{:,.1f}'.format(v) if mid in ['old_age_ratio','dependency_ratio','ltc_claims_index_65plus'] else '{:,.0f}'.format(v)) }}</td>{% endfor %}</tr>
+  {% endfor %}
+</table>
+
+<h2>Limitations</h2>
+<ul class="caveats">{% for c in caveats %}<li>{{ c }}</li>{% endfor %}</ul>
+
+
+<h2>Sources</h2>
+<table>
+  <tr><th>ID</th><th>Dataset</th><th>Vintage</th><th>SHA-256</th></tr>
+  {% for s in sources %}<tr><td>{{ s.id }}</td><td><a href="{{ s.url }}">{{ s.title }}</a></td><td>{{ s.vintage }}</td><td><code>{{ s.sha256[:16] }}&hellip;</code></td></tr>{% endfor %}
+</table>
+
+<footer>
+  Execution receipt: {{ result.receipt.backend }}; {{ result.receipt.hardware }}; {{ result.receipt.completed_draws }} of {{ result.receipt.requested_draws }} draws; seed {{ result.receipt.seed }}; {{ result.receipt.precision }}; compute {{ '%.3f'|format(result.receipt.compute_seconds) }} s.
+  Experiment hash <code>{{ result.experiment_hash }}</code>.
+  Source data &copy; Statistics Jersey / Government of Jersey, Open Government Licence - Jersey v1.0.
+</footer>
+</main>
+</body>
+</html>

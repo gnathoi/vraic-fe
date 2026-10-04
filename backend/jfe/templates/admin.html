@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>vraic-fe admin</title>
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root { --ink:#151515; --muted:#5a6068; --line:#e0e0e0; --bg:#f5f5f5; --card:#fff; --accent:#0066cc; --warn:#a35f00; --bad:#a30000; --ok:#3d7317; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 "Red Hat Text","Helvetica Neue",Arial,sans-serif; font-variant-numeric:tabular-nums; }
+  header { background:#151515; color:#fff; padding:12px 20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:16px; margin:0 12px 0 0; }
+  header .muted { color:#c7c7c7; font-size:12px; }
+  .modes { display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
+  .modes button { background:transparent; color:#fff; border:1px solid #6a6e73; padding:5px 10px; border-radius:3px; cursor:pointer; font:inherit; font-size:12px; }
+  .modes button.on { background:var(--accent); border-color:var(--accent); font-weight:700; }
+  main { padding:16px 20px; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:14px 16px; }
+  .card h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 10px; }
+  .big { font-size:30px; font-weight:700; line-height:1.1; }
+  .row { display:flex; justify-content:space-between; gap:8px; padding:3px 0; border-bottom:1px dashed var(--line); }
+  .row:last-child { border-bottom:0; }
+  .bar { height:10px; background:#eee; border-radius:5px; overflow:hidden; margin:4px 0 10px; }
+  .bar > span { display:block; height:100%; background:var(--accent); }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; }
+  th, td { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td.n, th.n { text-align:right; }
+  .wide { grid-column:1 / -1; }
+  .pill { display:inline-block; padding:1px 7px; border-radius:9px; font-size:11.5px; background:#eee; }
+  .complete { background:#e9f5e1; color:var(--ok); } .failed, .expired { background:#fbe8e8; color:var(--bad); } .queued, .running { background:#e7f1fa; color:var(--accent); }
+  svg text { font-size:10px; fill:var(--muted); }
+  .err { color:var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <img src="/brand/logo-64.png" alt="" width="32" height="32"><h1>Vraic Futures Engine &middot; Admin</h1>
+  <span class="muted" id="status">loading&hellip;</span>
+  <div class="modes" id="modes" aria-label="Admission mode"></div>
+</header>
+<main>
+  <section class="card"><h2>Queries</h2><div id="queries"></div></section>
+  <section class="card"><h2>Simulation runs</h2><div id="runs"></div></section>
+  <section class="card"><h2>Processing time (last 24 h)</h2><div id="latency"></div></section>
+  <section class="card"><h2>GPU</h2><div id="gpu"></div></section>
+  <section class="card"><h2>Host</h2><div id="host"></div></section>
+  <section class="card"><h2>Language model (vLLM)</h2><div id="llm"></div></section>
+  <section class="card wide"><h2>Activity per minute (last 30 min) &mdash; <span style="color:#0066cc">LLM queries</span> / <span style="color:#151515">runs</span></h2><div id="spark"></div></section>
+  <section class="card wide"><h2>Recent runs</h2><div id="recent"></div></section>
+</main>
+<script src="/admin.js"></script>
+</body>
+</html>

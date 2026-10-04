@@ -1,0 +1,15 @@
+# deps / builds
+node_modules/
+frontend/dist/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# data + generated output (raw downloads are fetched by the ingest step)
+data/raw/
+artifacts/
+
+# secrets
+.env
+data/processed/

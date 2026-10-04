@@ -1,0 +1,35 @@
+{
+  "name": "jersey-futures-engine-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@patternfly/chatbot": "6.7.1",
+    "@patternfly/patternfly": "6.6.1",
+    "@patternfly/react-core": "6.6.1",
+    "@patternfly/react-icons": "6.6.1",
+    "@patternfly/react-styles": "6.6.1",
+    "@patternfly/react-table": "6.6.1",
+    "echarts": "6.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.2"
+  },
+  "overrides": {
+    "@patternfly/react-code-editor": "file:../../../stubs/empty",
+    "posthog-js": "file:../../../stubs/empty",
+    "@segment/analytics-next": "file:../../../stubs/empty"
+  }
+}

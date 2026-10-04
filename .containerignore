@@ -1,0 +1,9 @@
+.git
+frontend/node_modules
+frontend/dist
+data/raw
+data/processed
+artifacts
+**/__pycache__
+**/.pytest_cache
+.env

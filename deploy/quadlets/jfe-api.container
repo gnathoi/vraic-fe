@@ -1,0 +1,30 @@
+# API + static frontend. Published on 127.0.0.1:8090 only.
+[Unit]
+Description=JFE API and web app
+Wants=jfe-db.service jfe-llm.service
+After=jfe-db.service
+
+[Container]
+ContainerName=jfe-api
+Image=localhost/jfe-app:latest
+Pull=never
+Label=app=jfe
+Network=jfe.network
+# the GPU computes the 10,000-simulation baseline at start-up (CPU fallback if absent)
+AddDevice=nvidia.com/gpu=0
+PublishPort=127.0.0.1:8090:8000
+Volume=jfe-artifacts.volume:/data/artifacts:z
+EnvironmentFile=%h/vraic-fe/.env
+Environment=JFE_LLM_URL=http://jfe-llm:8000/v1
+Exec=uvicorn jfe.api:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=* --workers 1
+ReadOnly=true
+Tmpfs=/tmp
+HealthCmd=python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"
+HealthInterval=15s
+
+[Service]
+Restart=always
+TimeoutStartSec=120
+
+[Install]
+WantedBy=default.target

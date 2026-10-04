@@ -1,0 +1,24 @@
+# Report worker: renders briefing HTML, CSVs and experiment ZIPs off the simulation lane (CPU only, no GPU).
+[Unit]
+Description=JFE report worker
+Wants=jfe-db.service
+After=jfe-db.service
+
+[Container]
+ContainerName=jfe-reports
+Image=localhost/jfe-app:latest
+Pull=never
+Label=app=jfe
+Network=jfe.network
+Volume=jfe-artifacts.volume:/data/artifacts:z
+EnvironmentFile=%h/vraic-fe/.env
+Exec=python -m jfe.worker --reports
+ReadOnly=true
+Tmpfs=/tmp
+
+[Service]
+Restart=always
+TimeoutStartSec=120
+
+[Install]
+WantedBy=default.target

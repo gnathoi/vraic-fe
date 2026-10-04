@@ -1,0 +1,24 @@
+# Numerical worker: one job at a time; NumPy reference backend, CuPy on the GPU for large ensembles.
+[Unit]
+Description=JFE simulation worker
+Wants=jfe-db.service
+After=jfe-db.service
+
+[Container]
+ContainerName=jfe-worker
+Image=localhost/jfe-app:latest
+Pull=never
+Label=app=jfe
+Network=jfe.network
+AddDevice=nvidia.com/gpu=0
+EnvironmentFile=%h/vraic-fe/.env
+Exec=python -m jfe.worker
+ReadOnly=true
+Tmpfs=/tmp
+
+[Service]
+Restart=always
+TimeoutStartSec=120
+
+[Install]
+WantedBy=default.target
